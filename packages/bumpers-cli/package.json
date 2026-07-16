@@ -1,0 +1,54 @@
+{
+  "name": "bumpers",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "bumpers": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup && mkdir -p dist/templates && cp -r templates/* dist/templates/",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:templates": "tsc -p templates/tsconfig.json",
+    "test:full": "FULL_INTEGRATION=1 vitest run tests/integration/full-pipeline.test.ts"
+  },
+  "dependencies": {
+    "commander": "^13.1.0",
+    "@clack/prompts": "^0.9.1",
+    "picocolors": "^1.1.1",
+    "nanospinner": "^1.2.2",
+    "fs-extra": "^11.3.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.4.0",
+    "typescript": "^5.7.3",
+    "vitest": "^3.1.1",
+    "@types/node": "^22.12.0",
+    "@types/fs-extra": "^11.0.4",
+    "@playwright/test": "^1.50.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.0.0",
+    "@tailwindcss/vite": "^4.2.0",
+    "tailwindcss": "^4.2.0",
+    "@tanstack/router-plugin": "^1.167.0",
+    "@tanstack/react-router": "^1.168.0",
+    "@tanstack/react-router-devtools": "^1.166.0",
+    "@tanstack/react-query": "^5.99.0",
+    "@tanstack/react-query-devtools": "^5.99.0",
+    "zustand": "^5.0.0",
+    "axios": "1.14.0",
+    "@testing-library/react": "^16.2.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/user-event": "^14.6.1",
+    "@vitest/coverage-v8": "^3.1.1",
+    "jsdom": "^26.0.0",
+    "storybook": "^8.6.4",
+    "@storybook/react-vite": "^8.6.4",
+    "@storybook/addon-essentials": "^8.6.4",
+    "@storybook/test": "^8.6.4"
+  }
+}

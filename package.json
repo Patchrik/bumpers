@@ -1,0 +1,11 @@
+{
+  "name": "bumpers-monorepo",
+  "private": true,
+  "scripts": {
+    "sync:agents": "node scripts/sync-agent-instructions.mjs",
+    "check:agents": "node scripts/sync-agent-instructions.mjs --check"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
+}

@@ -1,0 +1,29 @@
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      glob: "*.{ts,tsx}"
+      run: {{exec}} eslint {staged_files}
+    format:
+      glob: "*.{ts,tsx,json,css,html}"
+      run: {{exec}} biome format {staged_files}
+    typecheck:
+      run: {{exec}} tsc --noEmit
+    related-tests:
+      glob: "*.{ts,tsx}"
+      run: {{exec}} vitest related {staged_files} --run
+
+commit-msg:
+  commands:
+    commitlint:
+      run: {{exec}} commitlint --edit {1}
+
+pre-push:
+  parallel: false
+  commands:
+    test:
+      run: {{runPrefix}} {{scriptTest}}
+    colocate:
+      run: {{runPrefix}} {{scriptTestColocate}}
+    build:
+      run: {{runPrefix}} {{scriptBuild}}
