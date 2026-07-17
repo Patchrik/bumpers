@@ -1,5 +1,20 @@
 # {{projectName}} — Agent Instructions
 
+## Agent Entry Points
+
+- Codex reads this `AGENTS.md` directly.
+- Claude Code loads `CLAUDE.md`, which imports this file.
+- Cursor and Copilot use thin adapters that point here.
+- This file is the canonical project contract; keep shared guidance here rather than duplicating it.
+
+## Change Loop
+
+1. Inspect nearby code, existing patterns, and the platform boundary involved.
+2. Identify the observable behavior and meaningful regression risk.
+3. Add or update focused verification when it can catch that regression.
+4. Make the smallest correct change without weakening guardrails.
+5. Run the relevant checks and report what was and was not verified.
+
 ## Architecture
 
 This is a **Microsoft Teams Tab application** with the following structure:
@@ -12,6 +27,13 @@ This is a **Microsoft Teams Tab application** with the following structure:
 
 The app uses `@microsoft/teams-js` SDK to interact with the Teams platform.
 It runs as a web page inside a Teams iframe.
+
+### Platform Boundaries
+
+- Keep `@microsoft/teams-js` access at a narrow integration boundary instead of spreading SDK calls through UI components.
+- Preserve standalone behavior when Teams initialization or context loading is unavailable.
+- Treat theme and context values as platform input and provide safe defaults.
+- Make manifest changes intentionally when routes or exposed capabilities change.
 
 ---
 
@@ -74,10 +96,6 @@ Coverage has an 80% project-wide floor for lines, functions, branches, and state
 
 ## Teams Dev Workflow
 
-- `npm run dev` is the normal daily Teams tab workflow on `https://localhost`.
-- The first run may prompt for one-time local certificate trust or bootstrap.
-- If local HTTPS setup fails, run `npm run dev:setup` and then rerun `npm run dev`.
-- `npm run dev:teams` starts local HTTP Vite, opens a Microsoft Dev Tunnel, writes ignored `env/.env.local`, and creates ignored `build/appPackage.zip`.
-- `npm run dev:local` is an internal script used by Playwright; do not present it as the normal user workflow.
+- Use `npm run dev` for normal local HTTPS development and `npm run dev:teams` only for real Teams integration.
+- `npm run dev:local` is the internal Playwright server; E2E must not depend on Dev Tunnels.
 - Do not commit `env/.env.local` or `build/`.
-- The default tunnel workflow uses anonymous tunnel access so Teams can load the iframe URL. Anyone with the tunnel URL can access the local dev server while it is running.

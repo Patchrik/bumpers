@@ -115,8 +115,8 @@ export const installValidate: Installer = {
     }
 
     console.log(pc.cyan('  │'));
-    console.log(pc.cyan('  │  AI config: AGENTS.md teaches risk-based testing'));
-    console.log(pc.cyan('  │    Protect boundaries, shared behavior, and regressions'));
+    console.log(pc.cyan('  │  AI config: AGENTS.md is the canonical project contract'));
+    console.log(pc.cyan('  │    Thin adapters connect Claude, Cursor, and Copilot'));
     console.log(pc.cyan('  │'));
     console.log(pc.cyan('  │  Add your own stack — the guardrails will follow.'));
     console.log(pc.cyan('  │'));

@@ -97,18 +97,10 @@ function getHardRules(): Rule[] {
   ];
 }
 
-function formatHardRules(full: boolean, instructionFileName: string): string {
-  const rules = [...getHardRules()];
-  rules[0] = {
-    rule: `Read \`${instructionFileName}\` before making changes.`,
-    why: 'Project rules override generic model habits.',
-  };
-
-  if (full) {
-    return rules.map((item, index) => `${index + 1}. ${item.rule}\n   Why: ${item.why}`).join('\n\n');
-  }
-
-  return rules.map((item) => `- ${item.rule} Why: ${item.why}`).join('\n');
+function formatHardRules(): string {
+  return getHardRules()
+    .map((item, index) => `${index + 1}. ${item.rule}\n   Why: ${item.why}`)
+    .join('\n\n');
 }
 
 function getArchitectureLines(ro: ReactOptions): string[] {
@@ -232,105 +224,33 @@ function buildCommands(ro: ReactOptions): string {
   return commands.filter(Boolean).join('\n');
 }
 
-function buildCompletionChecklist(ro: ReactOptions): string {
-  const items = [
-    '- `npm run test`',
-    '- `npm run lint`',
-    '- `npm run format:check`',
-    '- `npm run build`',
-  ];
-
-  if (ro.router === 'tanstack') {
-    items.splice(1, 0, '- `npm run generate-routes`');
-  }
-
-  items.push('- `npm run test:colocate`');
-  items.push('- `npm run test:e2e` for user-critical flow changes');
-
-  return items.join('\n');
-}
-
-function buildSecondaryArchitecture(ro: ReactOptions): string {
-  const lines = [
-    'Routes should stay thin and focus on composition.',
-    'Business logic belongs in feature modules or `src/lib/` and should be kept testable.',
-    'Keep state at the narrowest level that owns the behavior. Hoist state only for real shared coordination.',
-    'Reusable UI belongs in `src/Components/`.',
-  ];
-
-  if (ro.stateManagement !== 'none') {
-    lines.push('Store logic should stay focused on state transitions and orchestration.');
-  }
-
-  if (ro.stateManagement === 'jotai') {
-    lines.push('Jotai atoms belong in `src/store/atoms.ts`, and atom tests should stay isolated.');
-  } else if (ro.stateManagement === 'redux-toolkit') {
-    lines.push('Redux Toolkit uses a store, typed hooks, slices, and RTK Query services under `src/store/`.');
-  }
-
-  if (ro.router === 'tanstack') {
-    lines.push('`src/routeTree.gen.ts` is generated output. Never edit it manually.');
-  } else if (ro.router === 'react-router') {
-    lines.push('React Router route definitions live in `src/App.tsx`; substantial page UI belongs in `src/Components/<Name>/<Name>.tsx`.');
-    lines.push('Use `<Link to="/about">`, `useNavigate()`, `useParams()`, and `<Outlet />` for nested flows.');
-  } else if (ro.router === 'wouter') {
-    lines.push('Wouter route definitions live in `src/App.tsx`; substantial page UI belongs in `src/Components/<Name>/<Name>.tsx`.');
-    lines.push('Use `<Link href="/about">` for navigation and `useLocation()` for programmatic routing.');
-  }
-
-  return formatBullets(lines);
-}
-
-function buildSecondaryTesting(): string {
-  return formatBullets([
-    'Use test-first thinking for architecture, risky behavior, and regressions; do not require a test for every file.',
-    'Prioritize boundaries, business rules, error paths, dependency-heavy components, and widely reused code.',
-    'Skip tests that only restate framework wiring, static configuration, or trivial rendering.',
-    'Use Storybook for reusable visual components with meaningful states.',
-    'Use E2E tests only for critical user journeys and cross-boundary regressions.',
-  ]);
-}
-
-function buildTemplateVars(ro: ReactOptions, instructionFileName: string) {
+function buildTemplateVars(ro: ReactOptions) {
   return {
     stackSummary: buildStackSummary(ro),
-    hardRules: formatHardRules(true, instructionFileName),
-    condensedHardRules: formatHardRules(false, instructionFileName),
+    hardRules: formatHardRules(),
     architectureBoundaries: formatBullets(getArchitectureLines(ro)),
-    condensedArchitecture: buildSecondaryArchitecture(ro),
     testingContract: formatBullets(getTestingLines()),
-    condensedTestingContract: buildSecondaryTesting(),
     verificationContract: buildVerificationContract(),
     fileSpecificConventions: formatBullets(getFileSpecificConventionLines(ro)),
     commands: buildCommands(ro),
-    completionChecklist: buildCompletionChecklist(ro),
   };
 }
 
 export async function buildReactAgentsMd(name: string, ro: ReactOptions): Promise<string> {
   return readTemplate('ai-config/react/AGENTS.md', {
     projectName: name,
-    ...buildTemplateVars(ro, 'AGENTS.md'),
+    ...buildTemplateVars(ro),
   });
 }
 
-export async function buildReactClaudeMd(name: string, ro: ReactOptions): Promise<string> {
-  return readTemplate('ai-config/react/CLAUDE.md', {
-    projectName: name,
-    ...buildTemplateVars(ro, 'CLAUDE.md'),
-  });
+export async function buildReactClaudeMd(name: string, _ro: ReactOptions): Promise<string> {
+  return readTemplate('ai-config/react/CLAUDE.md', { projectName: name });
 }
 
-export async function buildReactCursorrules(name: string, ro: ReactOptions): Promise<string> {
-  return readTemplate('ai-config/react/cursorrules.txt', {
-    projectName: name,
-    ...buildTemplateVars(ro, '.cursorrules'),
-  });
+export async function buildReactCursorrules(name: string, _ro: ReactOptions): Promise<string> {
+  return readTemplate('ai-config/react/cursorrules.txt', { projectName: name });
 }
 
-export async function buildReactCopilotMd(name: string, ro: ReactOptions): Promise<string> {
-  return readTemplate('ai-config/react/copilot-instructions.md', {
-    projectName: name,
-    ...buildTemplateVars(ro, '.github/copilot-instructions.md'),
-  });
+export async function buildReactCopilotMd(name: string, _ro: ReactOptions): Promise<string> {
+  return readTemplate('ai-config/react/copilot-instructions.md', { projectName: name });
 }

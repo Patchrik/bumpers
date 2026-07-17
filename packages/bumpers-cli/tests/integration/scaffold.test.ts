@@ -203,7 +203,11 @@ describe('full scaffold integration', () => {
     const agentsPath = path.join(projectDir, 'AGENTS.md');
     expect(await fs.pathExists(agentsPath)).toBe(true);
     const content = await fs.readFile(agentsPath, 'utf-8');
+    expect(content).toContain('Agent Entry Points');
+    expect(content).toContain('Codex reads this `AGENTS.md` directly.');
     expect(content).toContain('Risk-Based Testing');
+    expect(content).toContain('Renderer code must not import Electron or Node APIs');
+    expect(content).toContain('Treat renderer IPC input as untrusted');
     expect(content).toContain(projectName);
   });
 
@@ -213,10 +217,6 @@ describe('full scaffold integration', () => {
 
   it('creates .cursorrules', async () => {
     expect(await fs.pathExists(path.join(projectDir, '.cursorrules'))).toBe(true);
-  });
-
-  it('creates copilot instructions', async () => {
-    expect(await fs.pathExists(path.join(projectDir, '.github/copilot-instructions.md'))).toBe(true);
   });
 
   // --- Git ---
@@ -268,14 +268,20 @@ describe('full scaffold integration', () => {
 
   it('CLAUDE.md references AGENTS.md', async () => {
     const content = await fs.readFile(path.join(projectDir, 'CLAUDE.md'), 'utf-8');
-    expect(content).toContain('AGENTS.md');
-    expect(content).toContain('risk-based spectrum');
+    expect(content).toContain('@AGENTS.md');
+    expect(content).not.toContain('Risk-Based Testing');
   });
 
   it('.cursorrules references AGENTS.md', async () => {
     const content = await fs.readFile(path.join(projectDir, '.cursorrules'), 'utf-8');
-    expect(content).toContain('AGENTS.md');
-    expect(content).toContain('Testing Policy');
+    expect(content).toContain('`AGENTS.md` is the canonical project contract.');
+    expect(content).not.toContain('Risk-Based Testing');
+  });
+
+  it('copilot instructions are a thin AGENTS.md adapter', async () => {
+    const content = await fs.readFile(path.join(projectDir, '.github/copilot-instructions.md'), 'utf-8');
+    expect(content).toContain('`AGENTS.md` is the canonical project contract.');
+    expect(content).not.toContain('Risk-Based Testing');
   });
 
   it('creates .env.example', async () => {

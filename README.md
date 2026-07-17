@@ -105,6 +105,10 @@ Scaffolded projects use tests to protect behavior and architecture, not to creat
 
 Generated agent instructions document this testing spectrum for each scaffold.
 
+## Agent Instructions
+
+Each scaffold uses `AGENTS.md` as its canonical project contract. Codex reads it directly, `CLAUDE.md` imports it, and the Cursor and Copilot files are thin adapters. Shared architecture, testing, and verification guidance lives in one place to reduce startup context and prevent policy drift.
+
 ## Available Scripts (Scaffolded Project)
 
 | Command | Description |

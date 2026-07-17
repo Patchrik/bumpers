@@ -1,37 +1,7 @@
 # {{projectName}} — Cursor Rules
 
-Always read AGENTS.md before making changes.
+`AGENTS.md` is the canonical project contract. Read it before changing code.
 
-## Testing Policy
-- Testing is risk-based, not one test per file.
-- Use test-first thinking to define architecture, behavior, and regression risk.
-- Prioritize Teams SDK boundaries, business rules, error paths, dependency-heavy components, and widely reused code.
-- Skip trivial rendering, framework wiring, static config, re-exports, and generated code.
-- Use E2E for critical journeys and stories for reusable visual components with meaningful states.
-- Keep project-wide line, function, branch, and statement coverage at or above 80%.
-
-## Testing Patterns
-- Component tests: @testing-library/react (render, screen, userEvent)
-- Mock @microsoft/teams-js: vi.mock('@microsoft/teams-js')
-- E2E: standard browser Playwright with page.goto('/')
-- E2E uses npm run dev:local at http://127.0.0.1:53000
-- Do not make Playwright depend on Dev Tunnels
-
-## Commands
-- npm run dev — standard local HTTPS Teams tab workflow
-- npm run dev:setup — one-time local HTTPS certificate/bootstrap setup
-- npm run dev:teams — real Teams tunnel + packaging workflow
-- npm run dev:local — internal browser-only Vite server for Playwright
-- npm run test — unit tests
-- npm run test:coverage — coverage and project threshold
-- npm run test:e2e — E2E tests
-- npm run lint — ESLint
-- npm run format:check — Biome
-- npm run test:colocate — verify source structure
-
-## Conventions
-- Strict TypeScript, no any
-- Conventional commits (feat:, fix:, chore:)
-- Co-locate valuable unit tests with their source in src/
-- Handle standalone mode (outside Teams) gracefully
-- Do not commit env/.env.local or build/
+- Preserve its architecture, platform, testing, and verification rules.
+- Make the smallest correct change using existing project patterns.
+- Run relevant verification and report any checks you could not run.

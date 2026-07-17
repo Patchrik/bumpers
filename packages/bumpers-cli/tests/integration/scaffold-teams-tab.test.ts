@@ -320,27 +320,32 @@ describe('Teams Tab scaffold integration', () => {
   // --- AI Config ---
   it('creates Teams Tab AGENTS.md', async () => {
     const content = await fs.readFile(path.join(projectDir, 'AGENTS.md'), 'utf-8');
+    expect(content).toContain('Agent Entry Points');
+    expect(content).toContain('Codex reads this `AGENTS.md` directly.');
     expect(content).toContain('Risk-Based Testing');
     expect(content).toContain(projectName);
     expect(content).toContain('Teams Tab');
     expect(content).toContain('@microsoft/teams-js');
+    expect(content).toContain('Keep `@microsoft/teams-js` access at a narrow integration boundary');
+    expect(content).toContain('Preserve standalone behavior');
   });
 
   it('creates Teams Tab CLAUDE.md', async () => {
     const content = await fs.readFile(path.join(projectDir, 'CLAUDE.md'), 'utf-8');
-    expect(content).toContain('AGENTS.md');
-    expect(content).toContain('risk-based spectrum');
-    expect(content).toContain('teams-js');
+    expect(content).toContain('@AGENTS.md');
+    expect(content).not.toContain('teams-js');
   });
 
   it('creates Teams Tab .cursorrules', async () => {
     const content = await fs.readFile(path.join(projectDir, '.cursorrules'), 'utf-8');
-    expect(content).toContain('AGENTS.md');
-    expect(content).toContain('teams-js');
+    expect(content).toContain('`AGENTS.md` is the canonical project contract.');
+    expect(content).not.toContain('teams-js');
   });
 
   it('creates Teams Tab copilot instructions', async () => {
-    expect(await fs.pathExists(path.join(projectDir, '.github/copilot-instructions.md'))).toBe(true);
+    const content = await fs.readFile(path.join(projectDir, '.github/copilot-instructions.md'), 'utf-8');
+    expect(content).toContain('`AGENTS.md` is the canonical project contract.');
+    expect(content).not.toContain('teams-js');
   });
 
   // --- Git ---

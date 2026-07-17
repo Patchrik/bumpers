@@ -59,6 +59,7 @@ export const SHARED_SCAFFOLD_DEFAULTS: HelpSection = {
     {
       label: 'AI/editor guardrails',
       packages: ['AGENTS.md', 'CLAUDE.md', '.cursorrules', '.github/copilot-instructions.md'],
+      note: 'AGENTS.md is canonical; the other files are thin tool adapters.',
     },
     {
       label: 'CI and enforcement',

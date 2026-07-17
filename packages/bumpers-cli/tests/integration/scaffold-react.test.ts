@@ -422,19 +422,22 @@ describe('React scaffold integration', () => {
       const copilot = await fs.readFile(path.join(projectDir, '.github/copilot-instructions.md'), 'utf-8');
 
       expect(biomeConfig).toContain('test-results');
+      expect(agents).toContain('## Agent Entry Points');
+      expect(agents).toContain('Codex reads this `AGENTS.md` directly.');
       expect(agents).toContain('## Hard Rules');
       expect(agents).toContain('Use test-first thinking for risky behavior and regressions.');
-      expect(claude).toContain('Before claiming work is complete:');
-      expect(cursor).toContain('Use test-first thinking');
-      expect(copilot).toContain('Do not weaken tests, coverage, lint rules, or type checks');
+      expect(claude).toContain('@AGENTS.md');
+      expect(cursor).toContain('`AGENTS.md` is the canonical project contract.');
+      expect(copilot).toContain('`AGENTS.md` is the canonical project contract.');
+      expect(claude).not.toContain('Before claiming work is complete:');
 
       if (router === 'tanstack') {
         expect(eslintConfig).toContain(REACT_FILES.ROUTE_TREE_GEN);
         expect(biomeConfig).toContain(REACT_FILES.ROUTE_TREE_GEN);
         expect(colocateScript).toContain('routeTree.gen.ts');
         expect(agents).toContain('TanStack Router');
-        expect(claude).toContain('src/routeTree.gen.ts');
-        expect(cursor).toContain('npm run generate-routes');
+        expect(claude).not.toContain('src/routeTree.gen.ts');
+        expect(cursor).not.toContain('npm run generate-routes');
       } else {
         expect(eslintConfig).not.toContain(REACT_FILES.ROUTE_TREE_GEN);
         expect(biomeConfig).not.toContain(REACT_FILES.ROUTE_TREE_GEN);

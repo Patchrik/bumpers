@@ -1,5 +1,20 @@
 # {{projectName}} — Agent Instructions
 
+## Agent Entry Points
+
+- Codex reads this `AGENTS.md` directly.
+- Claude Code loads `CLAUDE.md`, which imports this file.
+- Cursor and Copilot use thin adapters that point here.
+- This file is the canonical project contract; keep shared guidance here rather than duplicating it.
+
+## Change Loop
+
+1. Inspect nearby code, existing patterns, and the runtime boundary involved.
+2. Identify the observable behavior and meaningful regression risk.
+3. Add or update focused verification when it can catch that regression.
+4. Make the smallest correct change without weakening guardrails.
+5. Run the relevant checks and report what was and was not verified.
+
 ## Architecture
 
 This is an **Electron desktop application** with the following structure:
@@ -12,6 +27,13 @@ This is an **Electron desktop application** with the following structure:
 | Shared types | `shared/` | Imported by all layers |
 
 IPC channels are defined in `shared/ipc-channels.ts`. Types flow through `shared/ipc-types.ts`.
+
+### Runtime Boundaries
+
+- Renderer code must not import Electron or Node APIs; use the typed preload API on `window.electronAPI`.
+- Preload exposes narrow, least-privilege capabilities rather than raw Electron primitives.
+- Main owns filesystem, process, native module, and other privileged side effects.
+- Treat renderer IPC input as untrusted. Validate it in the main process before performing privileged work.
 
 ---
 
@@ -92,17 +114,4 @@ When a test is valuable, add or update it before implementation when practical. 
 
 ## Native Modules
 
-This project uses `electron-builder install-app-deps` as a postinstall script to automatically
-rebuild native Node.js modules (C/C++ addons) against Electron's embedded Node.js version.
-
-**When adding a native module** (e.g., `better-sqlite3`, `sharp`, `serialport`):
-1. Install it as a regular dependency: `npm install better-sqlite3`
-2. The `postinstall` script runs automatically and rebuilds it for Electron
-3. Native modules are automatically externalized from the Vite bundle by `externalizeDepsPlugin()`
-4. Add `@types/...` if available
-5. Add focused boundary tests when the module affects application behavior; mock it in unit tests
-
-**If the postinstall fails** on a native module:
-- Ensure you have C++ build tools installed (Xcode Command Line Tools on macOS, Visual C++ Build Tools on Windows, `build-essential` on Linux)
-- Try `npx electron-rebuild -f -w <module-name>` to rebuild just that module
-- Check if the module publishes Electron-specific prebuilds (faster, no compiler needed)
+Native modules are externalized from the Vite bundle and rebuilt for Electron by the `postinstall` script. Keep their use in main-process boundaries and mock them in focused unit tests.

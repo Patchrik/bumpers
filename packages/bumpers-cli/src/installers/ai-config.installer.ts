@@ -11,7 +11,7 @@ import {
 } from './react-ai-config.js';
 
 export const installAiConfig: Installer = {
-  name: 'Writing AI config files (AGENTS.md, CLAUDE.md, .cursorrules)...',
+  name: 'Writing canonical agent instructions and adapters...',
   phase: InstallerPhase.ENFORCEMENT,
   run: async (opts) => {
     const { projectDir, projectName, template } = opts;

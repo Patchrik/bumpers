@@ -1,31 +1,7 @@
 # {{projectName}} — Cursor Rules
 
-Always read AGENTS.md before making changes.
+`AGENTS.md` is the canonical project contract. Read it before changing code.
 
-## Testing Policy
-- Testing is risk-based, not one test per file.
-- Use test-first thinking to define architecture, behavior, and regression risk.
-- Prioritize Electron boundaries, business rules, error paths, dependency-heavy components, and widely reused code.
-- Skip trivial rendering, framework wiring, static config, re-exports, and generated code.
-- Use E2E for critical journeys and stories for reusable visual components with meaningful states.
-- Keep project-wide line, function, branch, and statement coverage at or above 80%.
-
-## Testing Patterns
-- Renderer tests: @testing-library/react (render, screen, userEvent)
-- Main process tests: mock electron, test pure functions
-- E2E: _electron.launch({ args: ['.'] })
-- Always build before E2E: npm run build && npm run test:e2e
-
-## Commands
-- npm run test — unit tests
-- npm run test:coverage — coverage and project threshold
-- npm run test:e2e — E2E tests
-- npm run lint — ESLint
-- npm run format:check — Biome
-- npm run test:colocate — verify source structure
-
-## Conventions
-- Strict TypeScript, no any
-- Conventional commits (feat:, fix:, chore:)
-- IPC: domain:action naming
-- Co-locate valuable unit tests with their source
+- Preserve its architecture, security, testing, and verification rules.
+- Make the smallest correct change using existing project patterns.
+- Run relevant verification and report any checks you could not run.

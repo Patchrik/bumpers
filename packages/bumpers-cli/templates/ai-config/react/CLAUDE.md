@@ -1,27 +1,5 @@
 # {{projectName}} — Claude Instructions
 
-This is a React + Vite + TypeScript application scaffolded by Bumpers.
+@AGENTS.md
 
-{{stackSummary}}
-
-## Hard Rules
-
-{{condensedHardRules}}
-
-## Architecture Boundaries
-
-{{condensedArchitecture}}
-
-## Testing Contract
-
-{{condensedTestingContract}}
-
-## Verification Contract
-
-{{verificationContract}}
-
-## Commands
-
-{{commands}}
-
-`AGENTS.md` contains the fullest version of this same contract.
+Follow the canonical project contract imported above. Run relevant verification and report any checks you could not run.
