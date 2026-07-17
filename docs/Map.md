@@ -116,7 +116,7 @@ flowchart LR
 | 5 | Testing | Storybook | `storybook.installer.ts`, `templates/storybook/` |
 | 6 | Quality | ESLint | `eslint.installer.ts` |
 | 7 | Quality | Biome formatting | `biome.installer.ts` |
-| 8 | Enforcement | Test co-location checks | `colocate.installer.ts`, `templates/colocate/` |
+| 8 | Enforcement | Source structure checks | `colocate.installer.ts`, `templates/colocate/` |
 | 9 | Enforcement | Lefthook and Commitlint | `hooks.installer.ts`, `templates/hooks/` |
 | 10 | Enforcement | GitHub Actions | `github-actions.installer.ts`, `templates/github-actions/` |
 | 11 | Enforcement | AI/editor guidance | `ai-config.installer.ts`, `react-ai-config.ts`, `templates/ai-config/` |
@@ -180,7 +180,7 @@ Common source lives in `templates/react/`. Variant folders supply complete files
 | Redux Toolkit/RTK Query | `templates/react/state-redux-toolkit/` |
 | No state library | `templates/react/state-none/` |
 
-TanStack route generation is incorporated into generated build and test commands. Its generated `src/routeTree.gen.ts` is excluded from Git, linting, formatting, coverage, and co-location enforcement.
+TanStack route generation is incorporated into generated build and test commands. Its generated `src/routeTree.gen.ts` is excluded from Git, linting, formatting, coverage, and source structure enforcement.
 
 ## Cross-cutting generated features
 
@@ -195,7 +195,7 @@ TanStack route generation is incorporated into generated build and test commands
 | Component stories | `src/installers/storybook.installer.ts`, `templates/storybook/` |
 | Linting | `src/installers/eslint.installer.ts` |
 | Formatting | `src/installers/biome.installer.ts` |
-| Test/source co-location | `src/installers/colocate.installer.ts`, `templates/colocate/` |
+| Source structure rules | `src/installers/colocate.installer.ts`, `templates/colocate/` |
 | Pre-commit and commit-message checks | `src/installers/hooks.installer.ts`, `templates/hooks/` |
 | CI | `src/installers/github-actions.installer.ts`, `templates/github-actions/` |
 | Generated contributor/AI instructions | `src/installers/ai-config.installer.ts`, `src/installers/react-ai-config.ts`, `templates/ai-config/` |
@@ -207,7 +207,7 @@ TanStack route generation is incorporated into generated build and test commands
 ```text
 packages/bumpers-cli/templates/
 ├── ai-config/       # General and stack-aware generated instructions
-├── colocate/        # Source/test co-location checker
+├── colocate/        # Source structure checker
 ├── github-actions/  # Template-specific CI workflows
 ├── hooks/           # Lefthook configuration
 ├── playwright/      # E2E configs and specs by scaffold variant

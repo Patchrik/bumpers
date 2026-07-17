@@ -53,7 +53,7 @@ describe('buildReactAgentsMd', () => {
 
     expect(content).toContain('# test-react — Agent Instructions');
     expect(content).toContain('## Hard Rules');
-    expect(content).toContain('Use TDD by default for features and bug fixes.');
+    expect(content).toContain('Use test-first thinking for risky behavior and regressions.');
     expect(content).toContain('## Testing Contract');
     expect(content).toContain('## Verification Contract');
     expect(content).toContain('TanStack Router');
@@ -73,7 +73,7 @@ describe('buildReactClaudeMd', () => {
   it('is self-contained for Claude Code with stack-aware guidance', async () => {
     const content = await buildReactClaudeMd('test-react', reactOptions);
 
-    expect(content).toContain('Use TDD by default for features and bug fixes.');
+    expect(content).toContain('Use test-first thinking for risky behavior and regressions.');
     expect(content).toContain('Before claiming work is complete:');
     expect(content).toContain('TanStack Router');
     expect(content).toContain('Zustand');
@@ -91,8 +91,7 @@ describe('buildReactCursorrules', () => {
   it('is self-contained for Cursor with stack-aware constraints and commands', async () => {
     const content = await buildReactCursorrules('test-react', reactOptions);
 
-    expect(content).toContain('Use TDD by default');
-    expect(content).toContain('Use TDD by default');
+    expect(content).toContain('Use test-first thinking');
     expect(content).toContain('Keep state at the narrowest level');
     expect(content).toContain('Before claiming work is complete:');
     expect(content).toContain('TanStack Router');
@@ -109,7 +108,7 @@ describe('buildReactCopilotMd', () => {
   it('is self-contained for Copilot with stack-aware testing and verification guidance', async () => {
     const content = await buildReactCopilotMd('test-react', reactOptions);
 
-    expect(content).toContain('Use TDD by default');
+    expect(content).toContain('Use test-first thinking');
     expect(content).toContain('Do not weaken tests, coverage, lint rules, or type checks');
     expect(content).toContain('Before claiming work is complete:');
     expect(content).toContain('TanStack Query');

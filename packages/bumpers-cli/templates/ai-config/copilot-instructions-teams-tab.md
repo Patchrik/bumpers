@@ -2,25 +2,24 @@
 
 Read AGENTS.md for full details.
 
-## Key Rule: Five Artifacts per Component
-Every UI component change must produce:
-1. Component (.tsx)
-2. Unit test (.test.tsx)
-3. Storybook story (.stories.tsx)
-4. E2E test (e2e/*.spec.ts)
-5. Screenshot test (auto-generated)
+## Testing Policy
+- Testing is risk-based, not one test per file.
+- Use test-first thinking to define architecture, observable behavior, and regression risk.
+- Prioritize Teams SDK boundaries, business rules, error paths, dependency-heavy components, and widely reused code.
+- Skip trivial rendering, framework wiring, static config, re-exports, and generated code.
+- Use E2E for critical journeys and stories for reusable visual components with meaningful states.
 
 ## Testing Stack
 - Unit: Vitest + @testing-library/react
 - E2E: Playwright (browser, not Electron) using `npm run dev:local`
 - Stories: Storybook
-- Coverage: 80% minimum per file, auto-ratchet
+- Coverage: 80% project-wide minimum
 
 ## Teams Tab Specifics
 - React + Vite web app inside Teams iframe
 - Mock @microsoft/teams-js in tests
 - Handle standalone mode outside Teams
-- User-facing components live in src/Components/<Name>/<Name>.tsx with matching tests and stories
+- User-facing components live in src/Components/<Name>/<Name>.tsx
 - `npm run dev` is the standard local HTTPS Teams tab workflow
 - If local HTTPS setup fails, run `npm run dev:setup` and then rerun `npm run dev`
 - `npm run dev:teams` is the tunnel-backed integration workflow for real Teams testing
@@ -32,4 +31,4 @@ Every UI component change must produce:
 - npm run test (unit tests pass)
 - npm run lint (zero errors)
 - npm run format:check (clean)
-- npm run test:colocate (all files have tests)
+- npm run test:colocate (source structure is valid)

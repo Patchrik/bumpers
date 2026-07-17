@@ -264,7 +264,7 @@ describe('React scaffold integration', () => {
     expect(app).toContain(REACT_TEST_IDS.HEADING);
   });
 
-  it('configures Vitest per router and only excludes routeTree for TanStack', async () => {
+  it('configures focused Vitest coverage per router', async () => {
     for (const { router, projectDir } of routerFixtures) {
       const vitestConfig = await fs.readFile(path.join(projectDir, 'vitest.config.ts'), 'utf-8');
       const vitestSetup = await fs.readFile(path.join(projectDir, 'vitest.setup.ts'), 'utf-8');
@@ -273,29 +273,33 @@ describe('React scaffold integration', () => {
       expect(vitestConfig).toContain(REACT_TEST_GLOBS.JSDOM_INCLUDES[0]);
       expect(vitestConfig).toContain(REACT_FILES.MAIN);
       expect(vitestConfig).toContain('scripts/**');
-      expect(vitestConfig).toContain('lines: 100');
+      expect(vitestConfig).toContain('lines: 80');
+      expect(vitestConfig).toContain('functions: 80');
+      expect(vitestConfig).toContain('branches: 80');
+      expect(vitestConfig).toContain('statements: 80');
+      expect(vitestConfig).not.toContain('perFile');
+      expect(vitestConfig).not.toContain('autoUpdate');
       expect(vitestSetup).toContain("Object.defineProperty(window, 'scrollTo'");
       expect(await fs.pathExists(path.join(projectDir, 'src/lib/api.test.ts'))).toBe(true);
-      expect(await fs.pathExists(path.join(projectDir, 'src/lib/query-client.test.ts'))).toBe(true);
       expect(await fs.pathExists(path.join(projectDir, 'src/store/counter.test.ts'))).toBe(true);
       expect(await fs.pathExists(path.join(projectDir, 'src/Components/Counter/Counter.test.tsx'))).toBe(true);
-      expect(await fs.pathExists(path.join(projectDir, 'src/test-utils.test.tsx'))).toBe(true);
+      expect(await fs.pathExists(path.join(projectDir, 'src/test-utils.test.tsx'))).toBe(false);
+      expect(await fs.pathExists(path.join(projectDir, 'src/App.test.tsx'))).toBe(false);
+      expect(await fs.pathExists(path.join(projectDir, 'src/Root.test.tsx'))).toBe(false);
 
       if (router === 'tanstack') {
         expect(vitestConfig).toContain(REACT_FILES.ROUTE_TREE_GEN);
-        expect(await fs.pathExists(path.join(projectDir, 'src/routes/__root.test.tsx'))).toBe(true);
-        expect(await fs.pathExists(path.join(projectDir, 'src/routes/index.test.tsx'))).toBe(true);
-        expect(await fs.pathExists(path.join(projectDir, 'src/routes/about.test.tsx'))).toBe(true);
+        expect(await fs.pathExists(path.join(projectDir, 'src/routes/__root.test.tsx'))).toBe(false);
+        expect(await fs.pathExists(path.join(projectDir, 'src/routes/index.test.tsx'))).toBe(false);
+        expect(await fs.pathExists(path.join(projectDir, 'src/routes/about.test.tsx'))).toBe(false);
       } else if (router === 'none') {
         expect(vitestConfig).not.toContain(REACT_FILES.ROUTE_TREE_GEN);
-        expect(await fs.pathExists(path.join(projectDir, 'src/App.test.tsx'))).toBe(true);
         expect(await fs.pathExists(path.join(projectDir, 'src/pages/Home.test.tsx'))).toBe(false);
         expect(await fs.pathExists(path.join(projectDir, 'src/pages/About.test.tsx'))).toBe(false);
       } else {
         expect(vitestConfig).not.toContain(REACT_FILES.ROUTE_TREE_GEN);
-        expect(await fs.pathExists(path.join(projectDir, 'src/App.test.tsx'))).toBe(true);
-        expect(await fs.pathExists(path.join(projectDir, 'src/pages/Home.test.tsx'))).toBe(true);
-        expect(await fs.pathExists(path.join(projectDir, 'src/pages/About.test.tsx'))).toBe(true);
+        expect(await fs.pathExists(path.join(projectDir, 'src/pages/Home.test.tsx'))).toBe(false);
+        expect(await fs.pathExists(path.join(projectDir, 'src/pages/About.test.tsx'))).toBe(false);
       }
     }
   });
@@ -419,9 +423,9 @@ describe('React scaffold integration', () => {
 
       expect(biomeConfig).toContain('test-results');
       expect(agents).toContain('## Hard Rules');
-      expect(agents).toContain('Use TDD by default for features and bug fixes.');
+      expect(agents).toContain('Use test-first thinking for risky behavior and regressions.');
       expect(claude).toContain('Before claiming work is complete:');
-      expect(cursor).toContain('Use TDD by default');
+      expect(cursor).toContain('Use test-first thinking');
       expect(copilot).toContain('Do not weaken tests, coverage, lint rules, or type checks');
 
       if (router === 'tanstack') {
@@ -495,6 +499,35 @@ describe('React scaffold integration', () => {
       ).toThrow(/loose component file/);
     } finally {
       await fs.remove(looseComponent);
+    }
+  });
+
+  it('generated structure validator allows untested sources and enforces flat-first folders', async () => {
+    const projectDir = getRouterFixture('none').projectDir;
+    const untestedSource = path.join(projectDir, 'src/lib/new-behavior.ts');
+    const prematureFolder = path.join(projectDir, 'src/lib/feature');
+    await fs.writeFile(untestedSource, 'export const newBehavior = () => true;\n');
+
+    expect(() =>
+      execSync('npm run test:colocate', {
+        cwd: projectDir,
+        stdio: 'pipe',
+      }),
+    ).not.toThrow();
+
+    await fs.mkdirp(prematureFolder);
+    await fs.writeFile(path.join(prematureFolder, 'helper.ts'), 'export const helper = () => true;\n');
+
+    try {
+      expect(() =>
+        execSync('npm run test:colocate', {
+          cwd: projectDir,
+          stdio: 'pipe',
+        }),
+      ).toThrow(/flat-first rule/);
+    } finally {
+      await fs.remove(untestedSource);
+      await fs.remove(prematureFolder);
     }
   });
 });

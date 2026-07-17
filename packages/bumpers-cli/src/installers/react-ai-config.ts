@@ -59,8 +59,8 @@ function getHardRules(): Rule[] {
       why: 'Project rules override generic model habits.',
     },
     {
-      rule: 'Use TDD by default for features and bug fixes.',
-      why: 'Tests define success before implementation and reduce thrash.',
+      rule: 'Use test-first thinking for risky behavior and regressions.',
+      why: 'Tests should clarify architecture and protect meaningful behavior, not satisfy an artifact quota.',
     },
     {
       rule: 'Prefer the smallest correct change.',
@@ -155,15 +155,14 @@ function formatBullets(lines: string[], limit?: number): string {
 
 function getTestingLines(): string[] {
   return [
-    'TDD means adding or updating tests first when behavior changes, then implementing to satisfy them.',
-    'If true test-first order is impossible, add the missing tests immediately with the implementation and explain why.',
-    'Add co-located unit tests for every non-trivial source file.',
-    'Test pure helpers directly for calculations, mapping, filtering, validation, formatting, and state transitions.',
-    'Add component tests for reusable UI behavior.',
-    'Add route tests for page-level behavior and integration points.',
-    'When Storybook is scaffolded, reusable user-facing components should ship with a story alongside the component and test.',
-    'Use E2E tests for critical user journeys, not every small component interaction.',
-    'Required artifacts depend on the change: reusable components need component + test + story; critical flows need E2E; visual regression only applies where the scaffold explicitly supports it.',
+    'Testing is a spectrum. Use test-first thinking to define architecture, observable behavior, and regression risk before implementation.',
+    'Prioritize business rules, validation, state transitions, error paths, dependency-heavy components, and code imported throughout the app.',
+    'Add regression tests for bugs and tests at API, browser, storage, and state-management boundaries.',
+    'Do not add tests solely for route/root composition, provider wiring, static configuration, declarations, re-exports, generated code, or trivial presentation.',
+    'Co-locate valuable unit tests with the source they validate.',
+    'Use Storybook for reusable visual components with meaningful states.',
+    'Use E2E tests for critical user journeys and cross-boundary regressions, not every small component interaction.',
+    'Coverage has an 80% project-wide floor; never inflate it with assertions that cannot catch a meaningful regression.',
   ];
 }
 
@@ -182,7 +181,7 @@ function getFileSpecificConventionLines(ro: ReactOptions): string[] {
     'Keep tests co-located with the source they validate.',
     'Reusable UI belongs in `src/Components/`.',
     'Use `src/test-utils.tsx` for provider-aware rendering in tests.',
-    'TypeScript strictness, coverage thresholds, lint rules, and co-location checks stay on.',
+    'TypeScript strictness, project-level coverage thresholds, lint rules, and source-structure checks stay on.',
   ];
 
   if (ro.router === 'tanstack') {
@@ -284,11 +283,11 @@ function buildSecondaryArchitecture(ro: ReactOptions): string {
 
 function buildSecondaryTesting(): string {
   return formatBullets([
-    'Add or update tests before implementation when behavior changes.',
-    'Add co-located unit tests for non-trivial source files and pure helpers.',
-    'Use component tests for reusable UI behavior and route tests for page-level behavior.',
-    'Use Storybook stories for reusable user-facing components when Storybook is scaffolded.',
-    'Use E2E tests only for critical user journeys.',
+    'Use test-first thinking for architecture, risky behavior, and regressions; do not require a test for every file.',
+    'Prioritize boundaries, business rules, error paths, dependency-heavy components, and widely reused code.',
+    'Skip tests that only restate framework wiring, static configuration, or trivial rendering.',
+    'Use Storybook for reusable visual components with meaningful states.',
+    'Use E2E tests only for critical user journeys and cross-boundary regressions.',
   ]);
 }
 

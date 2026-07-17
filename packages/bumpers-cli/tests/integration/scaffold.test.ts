@@ -199,11 +199,11 @@ describe('full scaffold integration', () => {
   });
 
   // --- AI Config ---
-  it('creates AGENTS.md with Five-Artifact Rule', async () => {
+  it('creates AGENTS.md with risk-based testing guidance', async () => {
     const agentsPath = path.join(projectDir, 'AGENTS.md');
     expect(await fs.pathExists(agentsPath)).toBe(true);
     const content = await fs.readFile(agentsPath, 'utf-8');
-    expect(content).toContain('Five-Artifact Rule');
+    expect(content).toContain('Risk-Based Testing');
     expect(content).toContain(projectName);
   });
 
@@ -236,8 +236,12 @@ describe('full scaffold integration', () => {
   it('vitest.config.ts has coverage thresholds and dual environments', async () => {
     const content = await fs.readFile(path.join(projectDir, 'vitest.config.ts'), 'utf-8');
     expect(content).toContain('coverage');
-    expect(content).toContain('autoUpdate: true');
-    expect(content).toContain('perFile: true');
+    expect(content).toContain('lines: 80');
+    expect(content).toContain('functions: 80');
+    expect(content).toContain('branches: 80');
+    expect(content).toContain('statements: 80');
+    expect(content).not.toContain('autoUpdate');
+    expect(content).not.toContain('perFile');
     expect(content).toContain('scripts/**');
     expect(content).toContain("environment: 'node'");
     expect(content).toContain("environment: 'jsdom'");
@@ -265,13 +269,13 @@ describe('full scaffold integration', () => {
   it('CLAUDE.md references AGENTS.md', async () => {
     const content = await fs.readFile(path.join(projectDir, 'CLAUDE.md'), 'utf-8');
     expect(content).toContain('AGENTS.md');
-    expect(content).toContain('five artifacts');
+    expect(content).toContain('risk-based spectrum');
   });
 
   it('.cursorrules references AGENTS.md', async () => {
     const content = await fs.readFile(path.join(projectDir, '.cursorrules'), 'utf-8');
     expect(content).toContain('AGENTS.md');
-    expect(content).toContain('Five-Artifact Rule');
+    expect(content).toContain('Testing Policy');
   });
 
   it('creates .env.example', async () => {

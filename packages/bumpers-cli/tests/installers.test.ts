@@ -159,34 +159,6 @@ describe('installer pipeline', () => {
       }
     });
 
-    it('uses displayName in the generated Teams App test', async () => {
-      const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bumpers-teams-vitest-display-name-'));
-      const projectName = 'timetiles';
-      const displayName = 'TimeTiles';
-      const projectDir = path.join(tempDir, projectName);
-
-      try {
-        await fs.mkdirp(projectDir);
-        const opts: InstallerOptions = {
-          projectName,
-          projectDir,
-          template: 'teams-tab',
-          packageManager: 'npm',
-          cliVersion: '0.1.0',
-          displayName,
-        };
-
-        await installBase.run(opts);
-        await installTeamsTab.run(opts);
-        await installVitest.run(opts);
-
-        const testContent = await fs.readFile(path.join(projectDir, 'src/App.test.tsx'), 'utf-8');
-        expect(testContent).toContain(`name: '${displayName}'`);
-        expect(testContent).not.toContain(`name: '${projectName}'`);
-      } finally {
-        fs.removeSync(tempDir);
-      }
-    });
   });
 
   describe('React pipeline', () => {

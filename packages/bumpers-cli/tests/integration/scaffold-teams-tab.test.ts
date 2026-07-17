@@ -208,24 +208,18 @@ describe('Teams Tab scaffold integration', () => {
     const content = await fs.readFile(path.join(projectDir, 'vitest.config.ts'), 'utf-8');
     expect(content).toContain("environment: 'jsdom'");
     expect(content).toContain('coverage');
-    expect(content).toContain('autoUpdate: true');
-    expect(content).toContain('lines: 100');
-    expect(content).toContain('functions: 100');
-    expect(content).toContain('branches: 100');
-    expect(content).toContain('statements: 100');
+    expect(content).toContain('lines: 80');
+    expect(content).toContain('functions: 80');
+    expect(content).toContain('branches: 80');
+    expect(content).toContain('statements: 80');
+    expect(content).not.toContain('perFile');
+    expect(content).not.toContain('autoUpdate');
     expect(content).toContain('scripts/**');
     expect(content).toContain("'build'");
     expect(content).toContain("'coverage'");
     expect(content).toContain("'storybook-static'");
     // Should NOT have dual projects like Electron
     expect(content).not.toContain("environment: 'node'");
-  });
-
-  it('creates co-located App test', async () => {
-    const testPath = path.join(projectDir, 'src/App.test.tsx');
-    expect(await fs.pathExists(testPath)).toBe(true);
-    const content = await fs.readFile(testPath, 'utf-8');
-    expect(content).toContain(projectName);
   });
 
   it('creates co-located TeamsContextPanel test', async () => {
@@ -326,7 +320,7 @@ describe('Teams Tab scaffold integration', () => {
   // --- AI Config ---
   it('creates Teams Tab AGENTS.md', async () => {
     const content = await fs.readFile(path.join(projectDir, 'AGENTS.md'), 'utf-8');
-    expect(content).toContain('Five-Artifact Rule');
+    expect(content).toContain('Risk-Based Testing');
     expect(content).toContain(projectName);
     expect(content).toContain('Teams Tab');
     expect(content).toContain('@microsoft/teams-js');
@@ -335,7 +329,7 @@ describe('Teams Tab scaffold integration', () => {
   it('creates Teams Tab CLAUDE.md', async () => {
     const content = await fs.readFile(path.join(projectDir, 'CLAUDE.md'), 'utf-8');
     expect(content).toContain('AGENTS.md');
-    expect(content).toContain('five artifacts');
+    expect(content).toContain('risk-based spectrum');
     expect(content).toContain('teams-js');
   });
 

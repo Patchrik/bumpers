@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { readdirSync, existsSync, readFileSync } from 'fs';
-import { join, basename, dirname, sep } from 'path';
+import { join, basename, sep } from 'path';
 
 const EXCLUDED_NAMES = new Set(['main.tsx', 'env.d.ts', 'test-utils.tsx'{{reactRouteTreeGenExclude}}]);
 
@@ -45,9 +45,7 @@ function walk(dir) {
 }
 
 const srcFiles = walk('src');
-const missing = [];
 const structureErrors = [];
-const hasStorybook = existsSync('.storybook');
 const REACT_ROOTS = ['src/renderer/src', 'src'];
 
 function toPosix(file) {
@@ -60,14 +58,6 @@ function reactRelativePath(file) {
     (candidate) => posix === candidate || posix.startsWith(`${candidate}/`),
   );
   return root ? posix.slice(root.length + 1) : posix;
-}
-
-function hasSibling(file, suffix) {
-  const dir = dirname(file);
-  const base = basename(file).replace(/\.(ts|tsx)$/, '');
-  return (
-    existsSync(join(dir, `${base}${suffix}.ts`)) || existsSync(join(dir, `${base}${suffix}.tsx`))
-  );
 }
 
 function isComponentSource(file) {
@@ -94,16 +84,6 @@ function componentNameFromPath(file) {
 }
 
 for (const file of srcFiles) {
-  const name = basename(file);
-  if (EXCLUDED_NAMES.has(name)) continue;
-  if (EXCLUDED_PATTERNS.some((p) => p.test(name))) continue;
-
-  if (!hasSibling(file, '.test')) {
-    missing.push(file);
-  }
-}
-
-for (const file of srcFiles) {
   const posix = reactRelativePath(file);
   const name = basename(file);
 
@@ -126,13 +106,6 @@ for (const file of srcFiles) {
       );
     }
 
-    if (component && !hasSibling(file, '.test')) {
-      structureErrors.push(`${file} is missing ${component.fileBase}.test.tsx`);
-    }
-
-    if (component && hasStorybook && !hasSibling(file, '.stories')) {
-      structureErrors.push(`${file} is missing ${component.fileBase}.stories.tsx`);
-    }
   }
 
   if (posix.includes('Components/') && /^index\.(ts|tsx)$/.test(name)) {
@@ -154,9 +127,6 @@ for (const dirName of ['lib', 'store', 'utils', 'hooks']) {
   const dir = join('src', dirName);
   if (!existsSync(dir)) continue;
 
-  const categoryFiles = walk(dir).filter(
-    (file) => !EXCLUDED_PATTERNS.some((p) => p.test(basename(file))),
-  );
   const childDirs = readdirSync(dir, { withFileTypes: true }).filter((entry) =>
     entry.isDirectory(),
   );
@@ -165,7 +135,7 @@ for (const dirName of ['lib', 'store', 'utils', 'hooks']) {
     const childFiles = walk(childPath).filter(
       (file) => !EXCLUDED_PATTERNS.some((p) => p.test(basename(file))),
     );
-    if (categoryFiles.length < 3 && childFiles.length < 3) {
+    if (childFiles.length < 3) {
       structureErrors.push(
         `${childPath} violates the flat-first rule; keep ${dirName} files flat until there are 3+ related files`,
       );
@@ -173,24 +143,14 @@ for (const dirName of ['lib', 'store', 'utils', 'hooks']) {
   }
 }
 
-if (missing.length > 0 || structureErrors.length > 0) {
-  console.error('\nTest co-location check failed.\n');
-  if (missing.length > 0) {
-    console.error('Missing test files for:');
-    for (const f of missing) {
-      const base = basename(f).replace(/\.(ts|tsx)$/, '');
-      console.error(`  ${f} -> expected ${dirname(f)}/${base}.test.ts(x)`);
-    }
-    console.error(`\n${missing.length} file(s) missing co-located tests.`);
+if (structureErrors.length > 0) {
+  console.error('\nSource structure check failed.\n');
+  console.error('React structure violations:');
+  for (const error of structureErrors) {
+    console.error(`  ${error}`);
   }
-  if (structureErrors.length > 0) {
-    console.error('\nReact structure violations:');
-    for (const error of structureErrors) {
-      console.error(`  ${error}`);
-    }
-    console.error(`\n${structureErrors.length} structure violation(s).`);
-  }
+  console.error(`\n${structureErrors.length} structure violation(s).`);
   process.exit(1);
 }
 
-console.log('All source files have co-located tests.');
+console.log('Source structure is valid.');

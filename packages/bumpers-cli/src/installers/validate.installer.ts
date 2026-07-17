@@ -61,7 +61,7 @@ export const installValidate: Installer = {
     results.push(runStep('Unit tests', `npm run ${SCRIPT_KEYS.TEST}`, projectDir));
     results.push(runStep('Lint', `npm run ${SCRIPT_KEYS.LINT}`, projectDir));
     results.push(runStep('Format', `npm run ${SCRIPT_KEYS.FORMAT_CHECK}`, projectDir));
-    results.push(runStep('Test co-location', `npm run ${SCRIPT_KEYS.TEST_COLOCATE}`, projectDir));
+    results.push(runStep('Source structure', `npm run ${SCRIPT_KEYS.TEST_COLOCATE}`, projectDir));
 
     // Parse test results
     const testResult = results.find((r) => r.name === 'Unit tests');
@@ -97,7 +97,7 @@ export const installValidate: Installer = {
     console.log(pc.cyan(`  ◇  Scaffolded ${pc.bold(projectName)} (${templateDesc})`));
     console.log(pc.cyan('  │'));
     console.log(pc.cyan('  │  Tools configured:'));
-    console.log(pc.cyan('  │    Vitest         Unit tests + coverage (auto-ratchet)'));
+    console.log(pc.cyan('  │    Vitest         Unit tests + project coverage'));
     console.log(pc.cyan('  │    Playwright     E2E + screenshot tests'));
     console.log(pc.cyan('  │    Storybook      Component stories'));
     console.log(pc.cyan('  │    ESLint         Linting (strict, type-aware)'));
@@ -115,8 +115,8 @@ export const installValidate: Installer = {
     }
 
     console.log(pc.cyan('  │'));
-    console.log(pc.cyan('  │  AI config: AGENTS.md teaches "one prompt → five artifacts"'));
-    console.log(pc.cyan('  │    Component → unit test → story → E2E test → screenshot test'));
+    console.log(pc.cyan('  │  AI config: AGENTS.md teaches risk-based testing'));
+    console.log(pc.cyan('  │    Protect boundaries, shared behavior, and regressions'));
     console.log(pc.cyan('  │'));
     console.log(pc.cyan('  │  Add your own stack — the guardrails will follow.'));
     console.log(pc.cyan('  │'));

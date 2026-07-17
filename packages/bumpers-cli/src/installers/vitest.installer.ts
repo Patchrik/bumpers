@@ -68,7 +68,6 @@ export const installVitest: Installer = {
     if (opts.template === 'react') {
       const router = opts.reactOptions?.router ?? 'tanstack';
       const stateManagement = opts.reactOptions?.stateManagement ?? 'zustand';
-      const dataFetching = opts.reactOptions?.dataFetching ?? 'tanstack-query';
       const httpClient = opts.reactOptions?.httpClient ?? 'axios';
       const vars = {
         projectName,
@@ -103,7 +102,6 @@ export const installVitest: Installer = {
           ['src/store/slices/counterSlice.test.ts', 'vitest/react/state-redux-toolkit/src/store/slices/counterSlice.test.ts'],
           ['src/store/services/api.test.ts', 'vitest/react/state-redux-toolkit/src/store/services/api.test.ts'],
           ['src/Components/Counter/Counter.test.tsx', 'vitest/react/state-redux-toolkit/src/Components/Counter/Counter.test.tsx'],
-          ['src/test-utils.test.tsx', 'vitest/react/state-redux-toolkit/src/test-utils.test.tsx'],
         );
       } else {
         templateFiles.push(
@@ -113,43 +111,6 @@ export const installVitest: Installer = {
 
       if (httpClient === 'axios') {
         templateFiles.push(['src/lib/api.test.ts', 'vitest/react/src/lib/api.test.ts']);
-      }
-
-      if (dataFetching === 'tanstack-query') {
-        templateFiles.push(['src/lib/query-client.test.ts', 'vitest/react/src/lib/query-client.test.ts']);
-      }
-
-      if (stateManagement !== 'redux-toolkit') {
-        templateFiles.push(['src/test-utils.test.tsx', 'vitest/react/src/test-utils.test.tsx']);
-      }
-
-      if (router === 'tanstack') {
-        templateFiles.push(
-          ['src/App.test.tsx', 'vitest/react/src/App.test.tsx'],
-          ['src/Root.test.tsx', 'vitest/react/src/Root.test.tsx'],
-          ['src/routes/__root.test.tsx', 'vitest/react/src/routes/__root.test.tsx'],
-          ['src/routes/index.test.tsx', 'vitest/react/src/routes/index.test.tsx'],
-          ['src/routes/about.test.tsx', 'vitest/react/src/routes/about.test.tsx'],
-        );
-      } else if (router === 'none') {
-        templateFiles.push(
-          ['src/App.test.tsx', 'vitest/react/router-none/src/App.test.tsx'],
-          ['src/Root.test.tsx', 'vitest/react/router-none/src/Root.test.tsx'],
-        );
-      } else if (router === 'react-router') {
-        templateFiles.push(
-          ['src/App.test.tsx', 'vitest/react/router-react-router/src/App.test.tsx'],
-          ['src/Root.test.tsx', 'vitest/react/router-react-router/src/Root.test.tsx'],
-          ['src/pages/Home.test.tsx', 'vitest/react/router-react-router/src/pages/Home.test.tsx'],
-          ['src/pages/About.test.tsx', 'vitest/react/router-react-router/src/pages/About.test.tsx'],
-        );
-      } else {
-        templateFiles.push(
-          ['src/App.test.tsx', 'vitest/react/router-wouter/src/App.test.tsx'],
-          ['src/Root.test.tsx', 'vitest/react/router-wouter/src/Root.test.tsx'],
-          ['src/pages/Home.test.tsx', 'vitest/react/router-wouter/src/pages/Home.test.tsx'],
-          ['src/pages/About.test.tsx', 'vitest/react/router-wouter/src/pages/About.test.tsx'],
-        );
       }
 
       for (const [outputPath, templatePath] of templateFiles) {
@@ -167,8 +128,6 @@ export const installVitest: Installer = {
         ['vitest.config.ts', 'vitest/teams-tab/vitest.config.ts'],
         ['vitest.setup.ts', 'vitest/teams-tab/vitest.setup.ts'],
         ['__mocks__/@microsoft/teams-js.ts', 'vitest/teams-tab/__mocks__/@microsoft/teams-js.ts'],
-        ['src/App.test.tsx', 'vitest/teams-tab/src/App.test.tsx'],
-        ['src/Root.test.tsx', 'vitest/teams-tab/src/Root.test.tsx'],
         [
           'src/Components/TeamsContextPanel/TeamsContextPanel.test.tsx',
           'vitest/teams-tab/src/Components/TeamsContextPanel/TeamsContextPanel.test.tsx',
@@ -216,8 +175,6 @@ export default defineConfig({
         functions: 80,
         branches: 80,
         statements: 80,
-        perFile: true,
-        autoUpdate: true,
       },
       exclude: [
         'node_modules',
@@ -408,29 +365,6 @@ beforeEach(() => {
 describe('App', () => {
   it('renders the heading with project name', async () => {
     render(<App />);
-    const heading = await screen.findByRole('heading', { level: 1 });
-    expect(heading).toHaveTextContent('${projectName}');
-  });
-});
-`,
-      );
-
-      await fs.writeFile(
-        path.join(projectDir, 'src/renderer/src/Root.test.tsx'),
-        `import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import Root from './Root.js';
-
-beforeEach(() => {
-  window.${IPC.BRIDGE_NAME} = {
-    getExampleItems: vi.fn().mockResolvedValue([]),
-    getExampleItem: vi.fn().mockResolvedValue(undefined),
-  };
-});
-
-describe('Root', () => {
-  it('renders the app shell', async () => {
-    render(<Root />);
     const heading = await screen.findByRole('heading', { level: 1 });
     expect(heading).toHaveTextContent('${projectName}');
   });

@@ -62,7 +62,7 @@ export const SHARED_SCAFFOLD_DEFAULTS: HelpSection = {
     },
     {
       label: 'CI and enforcement',
-      note: 'GitHub Actions CI and the co-located test enforcement script.',
+      note: 'GitHub Actions CI and source structure enforcement.',
     },
   ],
 };

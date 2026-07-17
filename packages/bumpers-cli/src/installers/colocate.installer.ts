@@ -7,7 +7,7 @@ import { readTemplate } from '../utils/templates.js';
 import { FILES, REACT_FILES, REACT_SCRIPT_CMDS, SCRIPT_KEYS, SCRIPT_CMDS } from '../shared/constants.js';
 
 export const installColocate: Installer = {
-  name: 'Adding test co-location enforcement...',
+  name: 'Adding source structure enforcement...',
   phase: InstallerPhase.ENFORCEMENT,
   run: async (opts) => {
     const { projectDir } = opts;
