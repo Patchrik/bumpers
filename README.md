@@ -6,6 +6,20 @@ Bumpers is an orchestrator CLI. It calls real npm/npx tools (Vitest, Playwright,
 
 **It does NOT reimplement any testing tool.** It wires them together so every project starts with the full test pyramid.
 
+## Install
+
+Bumpers is distributed from GitHub Releases rather than the public npm registry.
+
+```bash
+# install globally
+npm install -g https://github.com/Patchrik/bumpers/releases/download/v0.1.0/bumpers-0.1.0.tgz
+
+# or run without a global install
+npx --yes --package=https://github.com/Patchrik/bumpers/releases/download/v0.1.0/bumpers-0.1.0.tgz -- bumpers up my-app --electron
+```
+
+The package itself is fetched from GitHub and is not searchable on npmjs.com. Its installation and generated projects may still download dependencies from npm.
+
 ## Quick Start
 
 Use Bumpers in either non-interactive headless mode or interactive wizard mode.
@@ -14,7 +28,7 @@ Headless mode is best for repeatable setup, scripts, CI, and LLM/agent-driven wo
 
 ```bash
 # headless mode: recommended for LLMs, agents, scripts, and CI
-npx bumpers up my-app --electron
+bumpers up my-app --electron
 cd my-app
 npm run dev
 ```
@@ -23,7 +37,7 @@ Interactive mode is best when a human wants to choose options in a terminal wiza
 
 ```bash
 # interactive mode: prompts for template and template options
-npx bumpers up my-app
+bumpers up my-app
 ```
 
 For the React SPA template, the non-interactive flags and interactive flow let you choose:
@@ -75,13 +89,13 @@ The React template is no longer a single fixed stack. It scaffolds a router and 
 
 ```bash
 # default non-interactive React scaffold
-npx bumpers up my-react-app --react
+bumpers up my-react-app --react
 
 # non-interactive React scaffold with explicit options
-npx bumpers up my-react-app --react --router react-router --state jotai
+bumpers up my-react-app --react --router react-router --state jotai
 
 # interactive React scaffold with router/state selection
-npx bumpers up my-react-app
+bumpers up my-react-app
 ```
 
 Valid values:

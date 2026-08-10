@@ -2,13 +2,35 @@
   "name": "bumpers",
   "version": "0.1.0",
   "type": "module",
+  "description": "Scaffold apps with testing guardrails baked in",
+  "keywords": [
+    "cli",
+    "scaffold",
+    "testing",
+    "vitest",
+    "playwright",
+    "storybook"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Patchrik/bumpers.git"
+  },
+  "files": [
+    "dist"
+  ],
   "bin": {
     "bumpers": "./dist/index.js"
   },
   "scripts": {
-    "build": "tsup && mkdir -p dist/templates && cp -r templates/* dist/templates/",
+    "build": "tsup && node scripts/copy-templates.mjs",
+    "prepare": "npm run build",
     "dev": "tsup --watch",
-    "test": "vitest run",
+    "test": "vitest run && npm run test:pack",
+    "test:pack": "node scripts/test-pack.mjs",
     "test:templates": "tsc -p templates/tsconfig.json",
     "test:full": "FULL_INTEGRATION=1 vitest run tests/integration/full-pipeline.test.ts"
   },

@@ -12,8 +12,12 @@ function resolveTemplatesDir(): string {
   if (fs.existsSync(srcPath)) return srcPath;
 
   // Try dist layout: dist/ → dist/templates/
-  const distPath = path.resolve(__utilsDir, '../templates');
+  const distPath = path.resolve(__utilsDir, './templates');
   if (fs.existsSync(distPath)) return distPath;
+
+  // Fallback for a built package in the repository tree.
+  const sourcePath = path.resolve(__utilsDir, '../templates');
+  if (fs.existsSync(sourcePath)) return sourcePath;
 
   throw new Error(
     'Could not find templates directory. Ensure templates/ exists.',
