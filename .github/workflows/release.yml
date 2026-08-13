@@ -6,13 +6,83 @@ on:
       - 'v*'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  release:
+  preflight:
+    name: Validate release version
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      archive: ${{ steps.version.outputs.archive }}
     steps:
-      - name: Check out repository
+      - name: Check out tagged commit
+        uses: actions/checkout@v4
+
+      - name: Read and validate package version
+        id: version
+        shell: bash
+        run: |
+          version=$(node -p "require('./packages/bumpers-cli/package.json').version")
+          expected_tag="v${version}"
+          test "$GITHUB_REF_NAME" = "$expected_tag"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "archive=bumpers-${version}.tgz" >> "$GITHUB_OUTPUT"
+
+  test:
+    name: Test / Node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22]
+    steps:
+      - name: Check out tagged commit
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test --workspace packages/bumpers-cli
+
+  test-pack:
+    name: Pack smoke / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - name: Check out tagged commit
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify packed CLI
+        run: npm run test:pack --workspace packages/bumpers-cli
+
+  release:
+    name: Create GitHub Release
+    needs: [preflight, test, test-pack]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out tagged commit
         uses: actions/checkout@v4
 
       - name: Set up Node.js
@@ -35,14 +105,32 @@ jobs:
         id: package
         working-directory: packages/bumpers-cli
         shell: bash
+        env:
+          EXPECTED_ARCHIVE: ${{ needs.preflight.outputs.archive }}
         run: |
-          version=$(node -p "require('./package.json').version")
-          archive="bumpers-${version}.tgz"
+          archive=$(node -p "require('./package.json').name + '-' + require('./package.json').version + '.tgz'")
+          test "$archive" = "$EXPECTED_ARCHIVE"
           test -f "$archive"
+          sha256=$(sha256sum "$archive" | cut -d ' ' -f1)
           echo "archive=$archive" >> "$GITHUB_OUTPUT"
-          sha256sum "$archive"
+          echo "sha256=$sha256" >> "$GITHUB_OUTPUT"
+          echo "SHA-256: $sha256"
+
+      - name: Fail if release already exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "A GitHub Release already exists for $GITHUB_REF_NAME"
+            exit 1
+          fi
 
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" "packages/bumpers-cli/${{ steps.package.outputs.archive }}" --generate-notes
+          SHA256: ${{ steps.package.outputs.sha256 }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            "packages/bumpers-cli/${{ steps.package.outputs.archive }}" \
+            --generate-notes \
+            --notes "SHA-256: ${SHA256}"

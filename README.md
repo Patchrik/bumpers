@@ -153,6 +153,12 @@ npm run build
 # Run CLI self-tests
 npm run test
 
+# Verify the packed CLI in a clean consumer
+npm run test:pack
+
+# Run the complete release-quality gate
+npm run test:release
+
 # Test a scaffold
 node dist/index.js up test-output --electron
 ```
