@@ -5,30 +5,44 @@ import fs from 'fs-extra';
 
 const packageDir = process.cwd();
 const consumerDir = await fs.mkdtemp(path.join(os.tmpdir(), 'bumpers-consumer-'));
-const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 let archivePath;
 
+function runNpm(args, options) {
+  const npmCli = process.env.npm_execpath;
+  const node = process.env.npm_node_execpath || process.execPath;
+
+  if (npmCli) {
+    return execFileSync(node, [npmCli, ...args], options);
+  }
+
+  const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+  return execFileSync(npm, args, {
+    ...options,
+    ...(process.platform === 'win32' ? { shell: true } : {}),
+  });
+}
+
 try {
-  execFileSync(npm, ['run', 'build'], { cwd: packageDir, stdio: 'inherit' });
+  runNpm(['run', 'build'], { cwd: packageDir, stdio: 'inherit' });
 
   const { name, version } = await fs.readJson(path.join(packageDir, 'package.json'));
   const archive = `${name}-${version}.tgz`;
-  execFileSync(npm, ['pack', '--ignore-scripts'], {
+  runNpm(['pack', '--ignore-scripts'], {
     cwd: packageDir,
     stdio: 'inherit',
   });
   archivePath = path.join(packageDir, archive);
 
-  execFileSync(npm, ['init', '-y'], { cwd: consumerDir, stdio: 'ignore' });
-  execFileSync(npm, ['install', archivePath], {
+  runNpm(['init', '-y'], { cwd: consumerDir, stdio: 'ignore' });
+  runNpm(['install', archivePath], {
     cwd: consumerDir,
     stdio: 'inherit',
   });
-  execFileSync(npm, ['exec', '--no', '--', 'bumpers', '--version'], {
+  runNpm(['exec', '--no', '--', 'bumpers', '--version'], {
     cwd: consumerDir,
     stdio: 'inherit',
   });
-  execFileSync(npm, ['exec', '--no', '--', 'bumpers', 'up', 'pack-smoke', '--react'], {
+  runNpm(['exec', '--no', '--', 'bumpers', 'up', 'pack-smoke', '--react'], {
     cwd: consumerDir,
     stdio: 'inherit',
   });
