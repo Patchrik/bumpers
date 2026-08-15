@@ -159,9 +159,15 @@ npm run test:pack
 # Run the complete release-quality gate
 npm run test:release
 
+# Return to the repository root and run the Linux Actions preflight locally
+cd ../..
+npm run test:actions
+
 # Test a scaffold
-node dist/index.js up test-output --electron
+node packages/bumpers-cli/dist/index.js up test-output --electron
 ```
+
+Releases are run manually from the `main` branch in GitHub Actions. Select `initial`, `patch`, `minor`, or `major`, optionally provide a committed version override, and use `publish: false` for a hosted dry run before publishing.
 
 ## Architecture
 

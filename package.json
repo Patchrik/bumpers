@@ -3,7 +3,9 @@
   "private": true,
   "scripts": {
     "sync:agents": "node scripts/sync-agent-instructions.mjs",
-    "check:agents": "node scripts/sync-agent-instructions.mjs --check"
+    "check:agents": "node scripts/sync-agent-instructions.mjs --check",
+    "release:check": "node scripts/release-version.mjs",
+    "test:actions": "node scripts/test-actions.mjs"
   },
   "workspaces": [
     "packages/*"

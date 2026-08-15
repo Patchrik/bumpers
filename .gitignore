@@ -6,3 +6,5 @@ plans
 .env
 .env.*
 !.env.example
+.act.secrets
+.act/*.json
