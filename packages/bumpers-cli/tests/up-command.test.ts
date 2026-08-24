@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { registerUpCommand } from '../src/commands/up.js';
 import { runInstallers } from '../src/installers/index.js';
-import { runUpPrompts } from '../src/prompts/up.prompts.js';
+import { promptForProjectName, runUpPrompts } from '../src/prompts/up.prompts.js';
 
 vi.mock('../src/installers/index.js', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../src/installers/index.js')>();
@@ -16,18 +16,22 @@ vi.mock('../src/installers/index.js', async (importOriginal) => {
 });
 
 vi.mock('../src/prompts/up.prompts.js', () => ({
+  promptForProjectName: vi.fn(),
   runUpPrompts: vi.fn(),
 }));
 
 describe('up command template flags', () => {
   let tempDir: string;
   let originalCwd: string;
+  let originalStdinIsTTY: PropertyDescriptor | undefined;
 
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bumpers-up-command-'));
     originalCwd = process.cwd();
+    originalStdinIsTTY = Object.getOwnPropertyDescriptor(process.stdin, 'isTTY');
     process.chdir(tempDir);
     vi.mocked(runInstallers).mockResolvedValue(undefined);
+    vi.mocked(promptForProjectName).mockReset();
     vi.mocked(runUpPrompts).mockReset();
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -35,6 +39,11 @@ describe('up command template flags', () => {
 
   afterEach(() => {
     process.chdir(originalCwd);
+    if (originalStdinIsTTY) {
+      Object.defineProperty(process.stdin, 'isTTY', originalStdinIsTTY);
+    } else {
+      Reflect.deleteProperty(process.stdin, 'isTTY');
+    }
     fs.removeSync(tempDir);
     vi.restoreAllMocks();
   });
@@ -52,6 +61,57 @@ describe('up command template flags', () => {
       throw new Error(`process.exit ${code}`);
     });
   }
+
+  function setInteractiveTerminal(isTTY: boolean): void {
+    Object.defineProperty(process.stdin, 'isTTY', { configurable: true, value: isTTY });
+  }
+
+  it('prompts for a missing project name before the interactive wizard', async () => {
+    setInteractiveTerminal(true);
+    vi.mocked(promptForProjectName).mockResolvedValue('prompted-app');
+    vi.mocked(runUpPrompts).mockResolvedValue({
+      template: 'react',
+      packageManager: 'npm',
+      reactOptions: {
+        router: 'tanstack',
+        stateManagement: 'zustand',
+        httpClient: 'axios',
+        dataFetching: 'tanstack-query',
+        styling: 'tailwind',
+      },
+    });
+
+    await runCommand(['up']);
+
+    expect(promptForProjectName).toHaveBeenCalledOnce();
+    expect(runUpPrompts).toHaveBeenCalledWith('prompted-app', '0.1.0');
+    expect(vi.mocked(runInstallers).mock.calls[0]?.[1]).toMatchObject({ projectName: 'prompted-app' });
+  });
+
+  it('prompts only for a missing name when a template is explicit', async () => {
+    setInteractiveTerminal(true);
+    vi.mocked(promptForProjectName).mockResolvedValue('react-app');
+
+    await runCommand(['up', '--react']);
+
+    expect(promptForProjectName).toHaveBeenCalledOnce();
+    expect(runUpPrompts).not.toHaveBeenCalled();
+    expect(vi.mocked(runInstallers).mock.calls[0]?.[1]).toMatchObject({
+      projectName: 'react-app',
+      template: 'react',
+    });
+  });
+
+  it('rejects a missing project name without an interactive terminal', async () => {
+    setInteractiveTerminal(false);
+    mockProcessExit();
+
+    await expect(runCommand(['up'])).rejects.toThrow('process.exit 1');
+
+    expect(console.error).toHaveBeenCalledWith(expect.stringContaining('Project name is required outside an interactive terminal'));
+    expect(promptForProjectName).not.toHaveBeenCalled();
+    expect(runInstallers).not.toHaveBeenCalled();
+  });
 
   it('uses default React options without prompts when --react is provided', async () => {
     await runCommand(['up', 'react-app', '--react', '--pm', 'npm']);

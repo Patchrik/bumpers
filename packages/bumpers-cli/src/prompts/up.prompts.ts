@@ -1,6 +1,7 @@
 import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import type { ReactOptions, TemplateType } from '../installers/index.js';
+import { validateProjectName } from '../utils/validate.js';
 
 const BANNER = `
  ___ _   _ __  __ ___ ___ ___  ___
@@ -17,6 +18,20 @@ interface PromptResult {
 
 interface RunUpPromptsOptions {
   preselectedTemplate?: TemplateType;
+}
+
+export async function promptForProjectName(): Promise<string | null> {
+  const projectName = await p.text({
+    message: 'Project name:',
+    validate: (value) => validateProjectName(value).message,
+  });
+
+  if (p.isCancel(projectName)) {
+    p.cancel('Cancelled.');
+    return null;
+  }
+
+  return projectName;
 }
 
 async function promptForReactOptions(): Promise<ReactOptions | null> {

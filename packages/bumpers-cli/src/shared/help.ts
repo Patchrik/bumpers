@@ -15,6 +15,7 @@ export const TOP_LEVEL_HELP_NOTE =
   'Run `bumpers up --help` to see template examples and the default tooling included in each scaffold.';
 
 export const UP_HELP_EXAMPLES = [
+  'bumpers up',
   'bumpers up my-electron-app --electron',
   'bumpers up my-teams-app --teams-tab --display-name "My Teams App"',
   'bumpers up my-react-app --react --pm pnpm',
@@ -141,7 +142,8 @@ export function formatUpHelpText(): string {
     'Template selection',
     '',
     `${HELP_INDENT}- Flags \`--electron\`, \`--teams-tab\`, and \`--react\` are mutually exclusive.`,
-    `${HELP_INDENT}- Omit template flags to use the interactive prompt flow.`,
+    `${HELP_INDENT}- Run \`bumpers up\` for the complete interactive wizard.`,
+    `${HELP_INDENT}- Omit template flags after a project name to choose the template interactively.`,
     `${HELP_INDENT}- \`--display-name\` only applies to \`--teams-tab\`.`,
   ];
 

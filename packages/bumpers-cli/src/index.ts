@@ -16,6 +16,9 @@ export function createProgram(): Command {
     .addHelpText('afterAll', `\n${TOP_LEVEL_HELP_NOTE}\n`);
 
   registerUpCommand(program);
+  program.configureHelp({
+    subcommandTerm: (command) => `${command.name()} ${command.usage()}`,
+  });
 
   return program;
 }

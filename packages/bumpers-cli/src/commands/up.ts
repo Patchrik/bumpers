@@ -26,7 +26,7 @@ import { installGit } from '../installers/git.installer.js';
 import { installGithubActions } from '../installers/github-actions.installer.js';
 import { installAiConfig } from '../installers/ai-config.installer.js';
 import { installValidate } from '../installers/validate.installer.js';
-import { runUpPrompts } from '../prompts/up.prompts.js';
+import { promptForProjectName, runUpPrompts } from '../prompts/up.prompts.js';
 import { formatUpHelpText } from '../shared/help.js';
 
 export const DEFAULT_REACT_OPTIONS: InstallerOptions['reactOptions'] = {
@@ -117,8 +117,9 @@ export function buildInstallerPipeline(opts: {
 
 export function registerUpCommand(program: Command): void {
   program
-    .command('up <project-name>')
+    .command('up [project-name]')
     .description('Scaffold a new project with testing guardrails')
+    .usage('[project-name] [options]')
     .option('--electron', 'Scaffold an Electron desktop app', false)
     .option('--teams-tab', 'Scaffold a Microsoft Teams Tab app', false)
     .option('--react', 'Scaffold a React SPA', false)
@@ -128,10 +129,22 @@ export function registerUpCommand(program: Command): void {
     .option('--state <state>', 'React state management: zustand, jotai, redux-toolkit, none')
     .addHelpText('afterAll', formatUpHelpText())
     .action(async (
-      projectName: string,
+      projectName: string | undefined,
       flags: UpCommandFlags,
     ) => {
-      const validation = validateProjectName(projectName);
+      let resolvedProjectName = projectName;
+      if (!resolvedProjectName) {
+        if (!process.stdin.isTTY) {
+          console.error(pc.red('✖ Project name is required outside an interactive terminal.'));
+          process.exit(1);
+        }
+        resolvedProjectName = await promptForProjectName();
+        if (!resolvedProjectName) {
+          process.exit(0);
+        }
+      }
+
+      const validation = validateProjectName(resolvedProjectName);
       if (!validation.valid) {
         console.error(pc.red(`✖ ${validation.message}`));
         process.exit(1);
@@ -173,7 +186,7 @@ export function registerUpCommand(program: Command): void {
       let reactOptions: InstallerOptions['reactOptions'];
 
       if (!hasTemplateFlag) {
-        const result = await runUpPrompts(projectName, cliVersion);
+        const result = await runUpPrompts(resolvedProjectName, cliVersion);
         if (!result) {
           process.exit(0);
         }
@@ -184,21 +197,21 @@ export function registerUpCommand(program: Command): void {
         reactOptions = resolveReactOptions(flags);
       }
 
-      const projectDir = path.resolve(process.cwd(), projectName);
+      const projectDir = path.resolve(process.cwd(), resolvedProjectName);
 
       console.log('');
-      console.log(pc.cyan(`  Scaffolding ${pc.bold(projectName)}...`));
+      console.log(pc.cyan(`  Scaffolding ${pc.bold(resolvedProjectName)}...`));
       console.log('');
 
       await fs.mkdirp(projectDir);
 
       const opts: InstallerOptions = {
-        projectName,
+        projectName: resolvedProjectName,
         projectDir,
         template,
         packageManager,
         cliVersion: cliVersion ?? '0.1.0',
-        displayName: template === 'teams-tab' ? flags.displayName?.trim() ?? projectName : undefined,
+        displayName: template === 'teams-tab' ? flags.displayName?.trim() ?? resolvedProjectName : undefined,
         reactOptions,
       };
 
@@ -207,10 +220,10 @@ export function registerUpCommand(program: Command): void {
       await runInstallers(installers, opts);
 
       console.log('');
-      console.log(pc.green(`  ✔ ${pc.bold(projectName)} scaffolded successfully!`));
+      console.log(pc.green(`  ✔ ${pc.bold(resolvedProjectName)} scaffolded successfully!`));
       console.log('');
       console.log(`  ${pc.dim('Next steps:')}`);
-      console.log(`  ${pc.dim('$')} cd ${projectName}`);
+      console.log(`  ${pc.dim('$')} cd ${resolvedProjectName}`);
       console.log('');
     });
 }

@@ -36,7 +36,10 @@ npm run dev
 Interactive mode is best when a human wants to choose options in a terminal wizard. Omit the template flag to launch prompts:
 
 ```bash
-# interactive mode: prompts for template and template options
+# complete interactive wizard: prompts for project name, template, and options
+bumpers up
+
+# use a known project name, then choose template and options
 bumpers up my-app
 ```
 
