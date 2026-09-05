@@ -9,7 +9,7 @@ describe('CLI help text', () => {
     const help = program.helpInformation();
 
     expect(help).toContain('Usage: bumpers [options] [command]');
-    expect(help).toContain('up [options] <project-name>');
+    expect(help).toContain('up [project-name] [options]');
     expect(TOP_LEVEL_HELP_NOTE).toContain('bumpers up --help');
     expect(help).not.toContain('@playwright/test');
   });
@@ -27,7 +27,7 @@ describe('CLI help text', () => {
     expect(help).toContain('bumpers up my-react-app --react --pm pnpm');
     expect(help).toContain('bumpers up my-react-app --react --router react-router --state jotai');
     expect(help).toContain('Flags `--electron`, `--teams-tab`, and `--react` are mutually exclusive.');
-    expect(help).toContain('Omit template flags to use the interactive prompt flow.');
+    expect(help).toContain('Run `bumpers up` for the complete interactive wizard.');
     expect(help).toContain('`--display-name` only applies to `--teams-tab`.');
     expect(help).toContain('--router: tanstack, react-router, wouter, none. Default: tanstack.');
     expect(help).toContain('--state: zustand, jotai, redux-toolkit, none. Default: zustand.');

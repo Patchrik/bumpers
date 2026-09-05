@@ -1,0 +1,231 @@
+name: Release Bumpers CLI
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: Release type
+        required: true
+        type: choice
+        options:
+          - initial
+          - patch
+          - minor
+          - major
+      version_override:
+        description: Optional committed version override
+        required: false
+        type: string
+      publish:
+        description: Create and publish the GitHub Release
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: Validate main and version
+    runs-on: ubuntu-24.04
+    outputs:
+      sha: ${{ steps.source.outputs.sha }}
+      version: ${{ steps.version.outputs.version }}
+      archive: ${{ steps.version.outputs.archive }}
+    steps:
+      - name: Require main branch
+        shell: bash
+        run: test "$GITHUB_REF" = "refs/heads/main"
+
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Record source commit
+        id: source
+        shell: bash
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Validate version and release inputs
+        id: version
+        shell: bash
+        env:
+          RELEASE_TYPE: ${{ inputs.release_type }}
+          VERSION_OVERRIDE: ${{ inputs.version_override }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node scripts/release-version.mjs --type "$RELEASE_TYPE" --override "$VERSION_OVERRIDE" | tee version-output.txt
+          while IFS= read -r line; do
+            echo "$line" >> "$GITHUB_OUTPUT"
+          done < version-output.txt
+
+          version=$(awk -F= '$1 == "version" { print $2 }' version-output.txt)
+          previous=$(awk -F= '$1 == "previous" { print $2 }' version-output.txt)
+          suggested=$(awk -F= '$1 == "suggested" { print $2 }' version-output.txt)
+          {
+            echo "## Release preflight"
+            echo "- Source: \`${GITHUB_SHA}\` on \`main\`"
+            echo "- Previous release: \`${previous:-none}\`"
+            echo "- Suggested version: \`${suggested}\`"
+            echo "- Effective version: \`${version}\`"
+            echo "- Publish: \`${{ inputs.publish }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if git tag --list "v${version}" | grep -q .; then
+            echo "Tag v${version} already exists"
+            exit 1
+          fi
+          if gh release view "v${version}" >/dev/null 2>&1; then
+            echo "Release v${version} already exists"
+            exit 1
+          fi
+
+  test:
+    name: Test / Node ${{ matrix.node }}
+    runs-on: ubuntu-24.04
+    env:
+      GIT_AUTHOR_NAME: github-actions[bot]
+      GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+      GIT_COMMITTER_NAME: github-actions[bot]
+      GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22]
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test --workspace packages/bumpers-cli
+
+  test-pack:
+    name: Pack smoke / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    env:
+      GIT_AUTHOR_NAME: github-actions[bot]
+      GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+      GIT_COMMITTER_NAME: github-actions[bot]
+      GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify packed CLI
+        run: npm run test:pack --workspace packages/bumpers-cli
+
+  package:
+    name: Build package
+    needs: [preflight, test, test-pack]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build CLI
+        run: npm run build --workspace packages/bumpers-cli
+
+      - name: Pack CLI
+        working-directory: packages/bumpers-cli
+        run: npm pack
+
+      - name: Verify archive and checksum
+        id: archive
+        working-directory: packages/bumpers-cli
+        env:
+          EXPECTED_ARCHIVE: ${{ needs.preflight.outputs.archive }}
+        shell: bash
+        run: |
+          archive=$(node -p "require('./package.json').name + '-' + require('./package.json').version + '.tgz'")
+          test "$archive" = "$EXPECTED_ARCHIVE"
+          test -f "$archive"
+          sha256sum "$archive" | tee SHA256SUMS
+          echo "archive=$archive" >> "$GITHUB_OUTPUT"
+
+      - name: Upload dry-run artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bumpers-${{ needs.preflight.outputs.version }}
+          path: |
+            packages/bumpers-cli/${{ steps.archive.outputs.archive }}
+            packages/bumpers-cli/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Publish GitHub Release
+    if: ${{ inputs.publish }}
+    needs: [preflight, package]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download validated package
+        uses: actions/download-artifact@v4
+        with:
+          name: bumpers-${{ needs.preflight.outputs.version }}
+          path: release
+
+      - name: Verify release artifact
+        shell: bash
+        run: |
+          test -f "release/${{ needs.preflight.outputs.archive }}"
+          (cd release && sha256sum --check SHA256SUMS)
+
+      - name: Create draft GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.preflight.outputs.version }}
+          SOURCE_SHA: ${{ needs.preflight.outputs.sha }}
+        run: |
+          gh release create "v${VERSION}" \
+            --target "$SOURCE_SHA" \
+            --draft \
+            --title "Bumpers v${VERSION}" \
+            --generate-notes \
+            --notes-file release/SHA256SUMS \
+            "release/${{ needs.preflight.outputs.archive }}"
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.preflight.outputs.version }}
+        run: gh release edit "v${VERSION}" --draft=false

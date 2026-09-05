@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as p from '@clack/prompts';
-import { runUpPrompts } from '../src/prompts/up.prompts.js';
+import { promptForProjectName, runUpPrompts } from '../src/prompts/up.prompts.js';
 
 vi.mock('@clack/prompts', () => ({
   confirm: vi.fn(),
@@ -10,6 +10,7 @@ vi.mock('@clack/prompts', () => ({
   intro: vi.fn(),
   note: vi.fn(),
   outro: vi.fn(),
+  text: vi.fn(),
 }));
 
 describe('runUpPrompts', () => {
@@ -29,6 +30,16 @@ describe('runUpPrompts', () => {
 
       return valueByMessage[args.message] as never;
     });
+  });
+
+  it('prompts for and validates a project name', async () => {
+    vi.mocked(p.text).mockResolvedValue('demo' as never);
+
+    await expect(promptForProjectName()).resolves.toBe('demo');
+
+    const [options] = vi.mocked(p.text).mock.calls[0] ?? [];
+    expect(options.message).toBe('Project name:');
+    expect(options.validate?.('Demo')).toContain('lowercase');
   });
 
   it('asks for every React stack option when the interactive prompt flow preselects React', async () => {

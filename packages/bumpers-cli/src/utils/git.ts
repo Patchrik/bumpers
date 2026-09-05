@@ -1,14 +1,22 @@
 import { execSync } from 'node:child_process';
 
 function run(command: string, cwd: string): void {
-  try {
-    execSync(command, { cwd, stdio: 'pipe' });
-  } catch (error) {
-    // Re-throw with the actual stderr/stdout from the command
-    const stderr = (error as any)?.stderr?.toString().trim() ?? '';
-    const stdout = (error as any)?.stdout?.toString().trim() ?? '';
-    const detail = stderr || stdout || 'unknown error';
-    throw new Error(`Command failed: ${command}\n${detail}`);
+  // ETXTBSY ("text file busy") is a transient race: npx downloads a binary
+  // (e.g. lefthook) and spawns it before the file write is flushed.
+  const attempts = 3;
+  for (let attempt = 1; ; attempt++) {
+    try {
+      execSync(command, { cwd, stdio: 'pipe' });
+      return;
+    } catch (error) {
+      const detail = `${(error as any)?.stderr?.toString().trim() ?? ''}${(error as any)?.stdout?.toString().trim() ?? ''}`;
+      const transient = detail.includes('ETXTBSY') && attempt < attempts;
+      if (!transient) {
+        throw new Error(`Command failed: ${command}\n${detail || 'unknown error'}`);
+      }
+      // Give the npx-installed binary a moment to finish flushing.
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 100 * attempt);
+    }
   }
 }
 

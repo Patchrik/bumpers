@@ -8,6 +8,10 @@ Bumpers is a CLI that scaffolds projects with testing guardrails.
 
 - `npm test --workspace packages/bumpers-cli`
 - `npm run build --workspace packages/bumpers-cli`
+- `npm run test:pack --workspace packages/bumpers-cli` — verify the packed CLI in a clean consumer
+- `npm run test:release --workspace packages/bumpers-cli` — run the full release-quality gate
+- `npm run release:check -- --type initial --override 0.1.0` — validate release version inputs locally
+- `npm run test:actions` — run the Linux GitHub Actions preflight locally with Act and Docker
 
 ## Installer Template Pattern
 

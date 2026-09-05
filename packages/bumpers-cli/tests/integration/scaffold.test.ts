@@ -292,6 +292,8 @@ describe('full scaffold integration', () => {
     const content = await fs.readFile(path.join(projectDir, 'README.md'), 'utf-8');
     expect(content).toContain(projectName);
     expect(content).toContain('Bumpers');
+    expect(content).toContain('https://github.com/Patchrik/bumpers');
+    expect(content).not.toContain('https://github.com/bumpers)');
   });
 
   it('creates electron-builder.yml', async () => {

@@ -3,3 +3,8 @@ dist
 .DS_Store
 plans
 .worktrees
+.env
+.env.*
+!.env.example
+.act.secrets
+.act/*.json
