@@ -95,7 +95,7 @@ export const installBase: Installer = {
     const readmeLines = [
       `# ${projectName}`,
       '',
-      '> Scaffolded with [Bumpers](https://github.com/bumpers) — testing guardrails baked in.',
+      '> Scaffolded with [Bumpers](https://github.com/Patchrik/bumpers) — testing guardrails baked in.',
       '',
       '## Getting Started',
       '',
